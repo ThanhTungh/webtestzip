@@ -77,7 +77,7 @@ class CoordinatorController extends Controller
     // Download file (Docx, image)
     public function download_file($file)
     {
-        return response()->file(public_path('/storage/files/' . $file));
+        return response()->download(public_path('/storage/files/' . $file));
     }
 
 
