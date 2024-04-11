@@ -79,16 +79,48 @@ class CoordinatorController extends Controller
     {
         $filePath = public_path('/storage/files/' . $file);
 
-        if (!Storage::exists($filePath)) {
-            return abort(404); // Handle missing file
-        }
+        // Check if the file exists
+        if (file_exists($filePath)) {
+            // Get the mime type of the file
+            $mimeType = mime_content_type($filePath);
 
-        $mimeType = mime_content_type($filePath);
-        return response()->download($filePath, $file, [
-            'Content-Type' => $mimeType
-        ]);
+            // Set appropriate headers for image files
+            if (str_starts_with($mimeType, 'image/')) {
+                return response()->file($filePath);
+            } else {
+                // For other file types, force download
+                return response()->download($filePath);
+            }
+        } else {
+            // File not found
+            abort(404);
+        }
     }
 
+    function mime_content_type($filename) {
+        $mime_types = array(
+            'doc' => 'application/msword',
+            'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'png' => 'image/png',
+            'jpe' => 'image/jpeg',
+            'jpeg' => 'image/jpeg',
+            'jpg' => 'image/jpeg',
+            'gif' => 'image/gif',
+            'bmp' => 'image/bmp',
+            'ico' => 'image/vnd.microsoft.icon',
+            'tiff' => 'image/tiff',
+            'tif' => 'image/tiff',
+            'svg' => 'image/svg+xml',
+            'svgz' => 'image/svg+xml',
+        );
+
+        $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+        if (array_key_exists($ext, $mime_types)) {
+            return $mime_types[$ext];
+        } else {
+            return 'application/octet-stream';
+        }
+    }
 
     // Download file (Zip)
     // public function download_file($file)
