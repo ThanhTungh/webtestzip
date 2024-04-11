@@ -77,8 +77,18 @@ class CoordinatorController extends Controller
     // Download file (Docx, image)
     public function download_file($file)
     {
-        return response()->download(public_path('/storage/files/' . $file));
+        $filePath = public_path('/storage/files/' . $file);
+
+        if (!Storage::exists($filePath)) {
+            return abort(404); // Handle missing file
+        }
+
+        $mimeType = mime_content_type($filePath);
+        return response()->download($filePath, $file, [
+            'Content-Type' => $mimeType
+        ]);
     }
+
 
     // Download file (Zip)
     // public function download_file($file)
@@ -136,8 +146,7 @@ class CoordinatorController extends Controller
         $check_comment = Comment::where('idea_id', $id)->first();
 
         if ($current_idea) {
-            if ($check_comment)
-            {
+            if ($check_comment) {
                 $check_comment->content = $request->content;
                 $check_comment->idea_id = $current_idea->id;
                 $check_comment->coordinator_id = Auth::guard('coordinator')->user()->id;
@@ -150,7 +159,7 @@ class CoordinatorController extends Controller
             $comment->idea_id = $current_idea->id;
             $comment->coordinator_id = Auth::guard('coordinator')->user()->id;
             $comment->save();
-            
+
             return redirect()->route('coordinator_list_ideas', $current_idea->faculty_id)->with('success', 'Added a comment successfully!');
         }
     }
@@ -166,13 +175,10 @@ class CoordinatorController extends Controller
     public function choose_typical_idea($id)
     {
         $idea = Idea::where('id', $id)->first();
-        if ($idea->status == 0)
-        {
+        if ($idea->status == 0) {
             $idea->status = 1;
             $idea->update();
-        }
-        else
-        {
+        } else {
             return redirect()->back()->with('error', 'This idea is already in the featured ideas section!');
         }
         return redirect()->back()->with('success', 'This idea has been added to the list of featured ideas!');
@@ -182,8 +188,7 @@ class CoordinatorController extends Controller
     public function remove_typical_idea($id)
     {
         $idea = Idea::where('id', $id)->first();
-        if ($idea->status == 1)
-        {
+        if ($idea->status == 1) {
             $idea->status = 0;
             $idea->update();
         }
