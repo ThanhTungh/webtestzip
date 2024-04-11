@@ -77,27 +77,7 @@ class CoordinatorController extends Controller
     // Download file (Docx, image)
     public function download_file($file)
     {
-        $filePath = public_path('/storage/files/' . $file);
-
-        // Check if the file exists
-        if (file_exists($filePath)) {
-            // Get the mime type of the file
-            $mimeType = mime_content_type($filePath);
-
-            // Set appropriate headers for image files
-            if (str_starts_with($mimeType, 'image/')) {
-                // Serve the image file directly
-                return response()->stream(function () use ($filePath) {
-                    readfile($filePath);
-                }, 200, ['Content-Type' => $mimeType]);
-            } else {
-                // For other file types, force download
-                return response()->download($filePath);
-            }
-        } else {
-            // File not found
-            abort(404, 'The requested file does not exist.');
-        }
+        return response()->file(public_path('/storage/files/' . $file));
     }
 
 
